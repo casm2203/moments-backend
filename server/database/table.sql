@@ -4,6 +4,7 @@ CREATE TABLE user (
         email  VARCHAR(300) NOT NULL,
         password VARCHAR(300) NOT NULL,
         url_img  VARCHAR(300) NOT NULL,
+        deleted BOOLEAN DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
@@ -14,8 +15,9 @@ CREATE TABLE moment (
         body  VARCHAR(300) NOT NULL,
         url_img  VARCHAR(300) NOT NULL,
         likes INTEGER NOT NULL DEFAULT 0,
-		  user_id INTEGER not null,
+	user_id INTEGER not null,
+	deleted BOOLEAN DEFAULT 0,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        foreign key (user_id) references user (id) on delete cascade on update CASCADE
+        foreign key (user_id) references user (id) 
 );
