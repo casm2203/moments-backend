@@ -1,5 +1,7 @@
 import { pool } from "../database/db.js";
 import bcryptjs from "bcryptjs";
+import { uploadFile, getFileURL } from "../utils/s3.js";
+import fs from "fs-extra";
 
 //Obtener todos los users
 export const getUsers = async (req, res) => {
@@ -32,8 +34,19 @@ export const getUser = async (req, res) => {
 //Crear un User
 export const addUser = async (req, res) => {
   try {
-    const { name, email, password, url_img } = req.body;
+    const { name, email, password, repassword } = req.body;
 
+    if (password !== repassword) {
+      return res.status(403).json({
+        error: "Contraseña incorrecta",
+        password: password,
+        repassword: repassword,
+      });
+    }
+    //Cargar img_url
+    await uploadFile(req.files.url_img);
+    const url_img = await getFileURL(req.files.url_img.name);
+    await fs.remove(req.files.url_img.tempFilePath);
     //Encriptar contraseña
     const salt = await bcryptjs.genSalt(10);
     let passwordEncrypted = await bcryptjs.hash(password, salt);
@@ -42,8 +55,8 @@ export const addUser = async (req, res) => {
       "INSERT INTO user(name, email, password, url_img) VALUES (?,?,?,?)",
       [name, email, passwordEncrypted, url_img]
     );
-    console.log(result);
-    res.json({ id: result.insertId, name, email, passwordEncrypted, url_img });
+
+    res.status(200).json({ id: result.insertId, body: req.body, url_img });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
