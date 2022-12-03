@@ -1,7 +1,7 @@
 import { pool } from "../database/db.js";
 import bcryptjs from "bcryptjs";
-import { uploadFile, getFileURL } from "../utils/s3.js";
-import fs from "fs-extra";
+import { uploadImg } from "../utils/s3.js";
+
 
 //Obtener todos los users
 export const getUsers = async (req, res) => {
@@ -44,9 +44,7 @@ export const addUser = async (req, res) => {
       });
     }
     //Cargar img_url
-    await uploadFile(req.files.url_img);
-    const url_img = await getFileURL(req.files.url_img.name);
-    await fs.remove(req.files.url_img.tempFilePath);
+    const url_img = await uploadImg(req);
     //Encriptar contraseña
     const salt = await bcryptjs.genSalt(10);
     let passwordEncrypted = await bcryptjs.hash(password, salt);
@@ -66,9 +64,12 @@ export const addUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
+    const url_img = await uploadImg(req);
+
+    const bodyPut = { ...req.body, url_img };
 
     const [result] = await pool.query("UPDATE user SET ? WHERE id = ?", [
-      req.body,
+      bodyPut,
       id,
     ]);
 
